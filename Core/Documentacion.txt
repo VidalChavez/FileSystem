@@ -1,0 +1,514 @@
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Documentacion de Funciones
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/*
+  Block size is 4096 Bytes long
+  Block pointers are 4 Bytes long
+  Inodes are 64 Bytes long
+  Directory entries are 64 Bytes long
+  Block 0 is for values of the FS; it contains the structure for inode allocation
+  Blocks 1 - 4 contain inode structures
+  Blocks 5 - 8 contain the directory of the FS
+  Blocks 9 - 2568 contain the data blocks control stucture (allocation)
+  Blocks 2569 - 5245448 contain the actual data of files (20GB, 5242880 blocks)
+*/
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Core Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+long int Get_Offset_For_Data_Block(int data_block_number);
+long int Get_Offset_For_SSD_Block(int data_block_number);
+long int Get_Offset_For_DB_In_CS(int data_block_number);
+long int Get_Offset_For_Inode_In_IBS(int inode_number);
+int Calculate_Data_Blocks_Needed_For_Size(long int bytes);
+int Calculate_Pointer_Blocks_Needed_For_Data_Blocks(int blocks);
+long int Get_Offset_For_Directory_Entry_Number(int entry_number);
+int Blocks_Are_Equal(char new_block[BLOCK_SIZE], char existing_block[BLOCK_SIZE]);
+
+
+
+long int Get_Offset_For_Data_Block(int data_block_number);
+/*
+Los bloques destinados para datos de los archivos estan en los bloques 2569 - 5245448
+Hay un total de 5242880 blques para datos
+Podria haber mas, ya que los apuntadores no son una limitante, pero se limita el uso a 20GB
+(5242880 bloques de 4096 Bytes c/uno)
+Esta funcion regresa el offset en bytes del bloque de data especificado
+Los bloques de datos van del 0 al 5242879
+Regresa (data_block_number + 2569) * 4096
+*/
+
+long int Get_Offset_For_SSD_Block(int data_block_number);
+/*
+Esta funcion regresa el offset en bytes del bloque de data especificado que se encuentra en cache SSD
+Los bloques de datos van del 0 al 524287
+Regresa data_block_number * 4096
+*/
+
+long int Get_Offset_For_DB_In_CS(int data_block_number);
+/*
+Regresa en bytes el offset para leer o escribir la estructura de control
+del bloque de datos correspondiente al bloque especificado por data_block_number
+Cada estructura es de 2 bytes; Hay 2048 estructuras en cada bloque de 4096
+Hay un total de 2560 bloques destinados a guardar dichas estructuras
+La estructura de control se encuentra en los bloques 9 - 2568
+*/
+
+long int Get_Offset_For_Inode_In_IBS(int inode_number);
+/*
+Regresa en bytes el offset para leer o escribir el inode correspondiente
+al numero de inode especificado por inode_number
+Todos los inodes se encuentran dentro del Inode Block Structure (IBS) que esta
+en los bloques 1 - 4; El IBS ocupa 4 bloques
+Cada inode tiene un tamanio de 64 Bytes
+Existen 256 inodes en total, que van del 0 al 255
+*/
+
+int Calculate_Data_Blocks_Needed_For_Size(long int bytes);
+/*
+Regresa el numero de bloques necesarios para contener a los bytes especificados
+*/
+
+int Calculate_Pointer_Blocks_Needed_For_Data_Blocks(int blocks);
+/*
+Regresa el numero de bloques adicionales que se necesitan para guardar los apuntadores a bloques
+Estos bloques adicionales son los bloques que contienen a los apuntadores directos e indirectos a bloques
+*/
+
+
+long int Get_Offset_For_Directory_Entry_Number(int entry_number);
+/*
+Regresa en bytes el offset para leer o escribir la estructrua de directorio
+(directory entry) correspondiente a la entrada dada por el argumento entry_number.
+Cada entrada de directorio es de 64 Bytes
+Las entradas de directorio se encuentran dentro de los bloques correspondientes al directorio
+El directorio se encuentra en los bloques 5 - 8
+Puede haber un maximo de 256 entradas de directorio
+Por simplicidad de implementacion, el mismo numero de inode corresponde al numero de entrada de directorio
+*/
+
+int Blocks_Are_Equal(char new_block[BLOCK_SIZE], char existing_block[BLOCK_SIZE]);
+/*
+Regresa 0 en cuanto detecta dos elementos diferentes
+Regresa 1 si termina de comparar todos los elementos y no encontro diferencias
+*/
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//High Level Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+int Mount_HDD(FS_Control_Structure *FSCS);
+int Mount_SSD(FS_Control_Structure *FSCS);
+int Save_Changes(FS_Control_Structure *FSCS);
+int Exit_FS(FS_Control_Structure *FSCS);
+int Set_Fd_At_Offset(long int offset, FS_Control_Structure *FSCS, int drive);
+int Allocate_New_Data_Block(FS_Control_Structure *FSCS);
+int Assign_Block_To_Existing_Or_New_Data_Block(FS_Control_Structure *FSCS, char new_block[BLOCK_SIZE]);
+int Set_Next_Available_Block(FS_Control_Structure *FSCS);
+int Free_block (FS_Control_Structure *FSCS, int block);
+int Update_Data_Block_Count(FS_Control_Structure *FSCS, int block, char operation);
+int Delete_Directory_Entry_Number (FS_Control_Structure *FSCS, int entry_number);
+int File_Exists(FS_Control_Structure *FSCS, char *file_name);
+int Get_Directory_Entry(FS_Control_Structure *FSCS, Directory_Entry *result, int entry_number);
+int List_All_Files(FS_Control_Structure *FSCS, Files_Stored **head);
+int Get_Inode(FS_Control_Structure *FSCS, Inode_Definition *result, int inode_number);
+int Create_New_File_With_Name(FS_Control_Structure *FSCS, char *file_name);
+int Allocate_New_Inode_And_Directory_Entry(FS_Control_Structure *FSCS);
+int Set_Next_Available_Inode_Number_And_Directory_Entry(FS_Control_Structure *FSCS);
+int Free_Files_Stored_List(Files_Stored *head);
+int Wipe_Out_Data_Block(FS_Control_Structure *FSCS, int block_number);
+int Delete_Data_Block(FS_Control_Structure *FSCS, int block);
+int Delete_Indirect_Block(FS_Control_Structure *FSCS, int block);
+int Delete_Double_Indirect_Block(FS_Control_Structure *FSCS, int block);
+int Initialize_Data_Pointer_Block(FS_Control_Structure *FSCS, int block_number);
+int Read_Block(FS_Control_Structure *FSCS, int block_number, char block[BLOCK_SIZE]);
+int Update_Cache_Values(FS_Control_Structure *FSCS, int block_number);
+int Initialize_Cache(FS_Control_Structure *FSCS);
+
+
+
+int Mount_HDD(FS_Control_Structure *FSCS);
+/*
+Asigna el path en FSCS del HDD al fp de la estructura FSCS que apunta al HDD
+Regresa -1 si hubo error abriendo el disco
+*/
+
+int Mount_SSD(FS_Control_Structure *FSCS);
+/*
+Asigna el path en FSCS del SSD  al fp de la estructura FSCS que apunta al SDD
+Regresa -1 si hubo error abriendo el disco
+*/
+
+
+int Save_Changes(FS_Control_Structure *FSCS);
+/*
+Salvaguarda los valores de la estructura FSCS
+Hace update del primer bloque del HDD, incluido el bit map de inodes
+*/
+
+int Set_Fd_At_Offset(long int offset, FS_Control_Structure *FSCS, int drive);
+/*
+Coloca el drive especificado en el offset dado
+El offset esta ya dado en bytes
+El drive indica
+  1 - HDD
+  0 - SSD
+*/
+
+int Allocate_New_Data_Block(FS_Control_Structure *FSCS);
+/*
+Checa si hay bloques no asignados
+Obtiene el siguiente bloque disponible
+Pone en ceros el contenido de dicho bloque
+Actualiza el count del bloque (+1) en la estructura de control de bloques de datos
+Actualiza el count de FSCS de bloques no asignados
+Hace el set del siguiente bloque disponible
+Regresa el numero de bloque (-1 si ya no habia bloques disponibles)
+*/
+
+int Assign_Block_To_Existing_Or_New_Data_Block(FS_Control_Structure *FSCS, char new_block[BLOCK_SIZE]);
+/*
+Funcion en donde se implementa la deduplicacion
+Se encuentra el siguiente bloque asignado iniciando en el cero
+Se compara el valor de ese bloque con el nuevo
+Si es el mismo, se suma uno al count y se devuelve el numero del bloque ya existente
+Si no, se asigna un nuevo bloque y se devuelve el numero del nuevo bloque asignado
+    Allocate_New_Data_Block(FSCS)
+Se escribe el contenido del nuevo bloque en el bloque asignado
+Se devuelve el numero del bloque asignado
+Actualiza el cache con la funcion Update_Cache_Values()
+*/
+
+int Set_Next_Available_Block(FS_Control_Structure *FSCS);
+/*
+Asigna el siguiente bloque disponible
+Checa la estructura de control de bloques de datos para buscar un count en cero
+Realiza lecturas sucesivas hasta encontrar un count en cero.
+La lectura es de 2 bytes
+Valida errores en la lectura y disponibilidad de bloques libres
+Regresa:
+0 - no hubo errores
+-1 - error de lectura de drive
+-2 - no hay bloques libres disponibles
+*/
+
+int Free_block (FS_Control_Structure *FSCS, int block);
+/*
+Libera el bloque de datos correspondiente al argumento
+Actualiza su valor en la estructura de control (-1)
+Si la cuenta fue cero, aumenta en uno el numero de bloques de datos libres
+Si ahora solo hay un bloque libre, marca ese bloque como el siguiente bloque libre
+Regresa el count correspondiente al bloque en la estructura de control
+*/
+
+int Update_Data_Block_Count(FS_Control_Structure *FSCS, int block, char operation);
+/*
+Lee la cuenta correspondiente al bloque en la estructura de bloques de datos
+Aumenta o disminuye en uno dicha cuenta (segun el argumento de operacion)
+El argumento puede ser '+' o '-' para aumentar o decrementar en uno correspondientemente
+La lectura y escritura es de 2 bytes; implementada igual que en la funcion Set_Next_Available_Block
+Regresa:
+block_count
+-1 - en caso de error en la lectura
+*/
+
+int Delete_Directory_Entry_Number (FS_Control_Structure *FSCS, int entry_number);
+/*
+Coloca puros 0s en la entrada de directorio asociada con el numero pasado como argumento
+memset (0s)
+Get_Offset_For_Directory_Entry_Number
+Set_Fd_At_Offset
+write (0s)
+*/
+
+int File_Exists(FS_Control_Structure *FSCS, char *file_name);;
+/*
+Recorre la estructura de direcotrios, entrada por entrada,
+de manera secuencial buscando el archivo con el nombre pasado en el argumento
+Regresa el inode del archivo
+Si no lo encuentra, regresa -1
+La busqueda termina:
+  Cuando se encuentra el match
+  Cuando se agotan los inodes / entradas ya asignadas (archivos existentes)
+Puede ser usada para recuperar el inode de cualquier archivo
+O checar si algun archivo ya existe
+*/
+
+int Get_Directory_Entry(FS_Control_Structure *FSCS, Directory_Entry *result, int entry_number);
+/*
+Lee la entrada de directorio asociada con el numero del argumento
+Corresponde tambien al numero del inode por la implementacion hecha
+Guarda en *result la estructura leida
+*/
+
+int List_All_Files(FS_Control_Structure *FSCS, Files_Stored **head);
+/*
+Almacena en la lista dinamica apuntada por *head
+una lista de todos los archivos contenidos en el disco
+En la lista se encuentra, para cada archivo:
+  nombre
+  tamanio
+  inode
+Se debe tomar en cuenta la limpieza de la memoria asignada una vez terminada la
+utilizacion de la lista contenida en *head
+Ver funcion Free_Files_Stored_List(Files_Stored *head)
+Recorre todo el bitmap de inodes
+Extrae inode y entrada de directorio si el inode esta asignada a un archiva (marcada como 1 en el bitmap)
+Crea un nuevo elemento y lo agrega a la lista con la informacion descrita
+*/
+
+int Get_Inode(FS_Control_Structure *FSCS, Inode_Definition *result, int inode_number);
+/*
+Guarda en *result el inode correspondiente al numero dado por inode_number en el argumento
+Los inodes se encuentran guardados en los bloques 1 - 4
+*/
+
+int Create_New_File_With_Name(FS_Control_Structure *FSCS, char *file_name);
+/*
+Checa si aun hay inodes disponibles
+Obtiene un nuevo inode y entrada de directorio con la funcion
+  Allocate_New_Inode_And_Directory_Entry
+Utiliza una estructura de inode y una de entrada de directorio para asignar en ellas
+  Nombre del archivo (argumento filename)
+  Inode del archivo
+  Tamanio del archivo (asignado como cero)
+Ademas escribe la entrada en la estructura de directorio
+Escribe el inode en la estructura de control de inodes
+Inicializa los 14 apuntadores del inode con el valor 111111111, que implica inutilizacion del apuntador
+Regresa
+inode del archivo - si la creacion fue exitosa
+-1 - si ya no habia inodes disponibles
+*/
+
+int Allocate_New_Inode_And_Directory_Entry(FS_Control_Structure *FSCS);
+/*
+Obtiene el siguiente inode libre
+Actualiza el inode Bit Map poniendo un 1 en el valor del arreglo
+Actualiza la cuenta de inode libres (-1)
+Hace el set del siguiente inode libre
+Si no hay inode libres, regresa -1
+De otra forma, regresa el numero de inode asignado
+Tanto inodes como entradas de directorio van del 0 al 255
+*/
+
+int Set_Next_Available_Inode_Number_And_Directory_Entry(FS_Control_Structure *FSCS);
+/*
+Recupera el ultimo inode libre asignado
+Checa el inode bit map a partir del numero recuperado hasta encontrar uno libre
+Asigna el siguiente inode y entrada de directorio libre con la iteracion a la que llego
+Regresa el nuevo inode libre
+*/
+
+int Free_Files_Stored_List(Files_Stored *head);
+/*
+Hace el free() correspondiente para la memoria alocada para la creacion
+de la lista con todos los archivos contenidos en el file system
+*/
+
+int Wipe_Out_Data_Block(FS_Control_Structure *FSCS, int block_number);
+/*
+Esta funcion es invocada cuando se va a asignar un bloque nuevo
+Se escriben puros ceros en el bloque del argumento
+*/
+
+int Delete_Data_Block(FS_Control_Structure *FSCS, int block);
+/*
+Hace un Free_block del bloque
+*/
+
+int Delete_Indirect_Block(FS_Control_Structure *FSCS, int block);
+/*
+Lee el contenido del bloque, que contiene apuntadores a bloques
+Manda llamar Delete_Data_Block de todos los bloques hasta que encuentre el valor
+UNUSED_POINTER_VALUE o termine el arreglo de apuntadores
+*/
+
+int Delete_Double_Indirect_Block(FS_Control_Structure *FSCS, int block);
+/*
+Lee el contenido del bloque, que contiene apuntadores indirectos a bloques
+Manda llamar Delete_Indirect_Block de todos los bloques hasta que encuentre el valor
+UNUSED_POINTER_VALUE o termine el arreglo de apuntadores
+*/
+
+int Initialize_Data_Pointer_Block(FS_Control_Structure *FSCS, int block_number);
+/*
+Se escribe el valor UNUSED_POINTER_VALUE en todo el bloque
+int block[1024];
+for (i = 0; i < 1024; i++) block[i] = UNUSED_POINTER_VALUE;
+write(FSCS->HDD_storage_fd,block,sizeof(int)*1024);
+*/
+
+int Read_Block(FS_Control_Structure *FSCS, int block_number, char block[BLOCK_SIZE]);
+/*
+Si FSCS->cache_flag esta activa,
+Se manda llamar a Update_Cache_Values() y se lee de cache
+Si no, se lee directamente de HDD
+Regresa FSCS->cache_flag
+*/
+
+int Update_Cache_Values(FS_Control_Structure *FSCS, int block_number);
+/*
+Checa si el bloque block_number de HDD se encuentra mapeado al SSD a partir de FSCS.CMS
+Si no lo esta, ve si hay bloques libres
+Si no los hay, libera uno
+Actualiza el contenido del cache con el bloque del argumento (algoritmo LFU)
+Regresa el numero de bloque de cache a leer
+*/
+
+int Initialize_Cache(FS_Control_Structure *FSCS);
+/*
+Inicializa todo lo relacionado con el manejo del cache en FSCS
+*/
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//API Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+char *List_Disk_Contents(FS_Control_Structure *FSCS);
+char *Report_Disk_Status(FS_Control_Structure *FSCS);
+char *Report_Cache_Status(FS_Control_Structure *FSCS);
+int Delete_File(FS_Control_Structure *FSCS, char *filename);
+int Enter_File(FS_Control_Structure *FSCS, char *origin, char *destination);
+int Extract_File(FS_Control_Structure *FSCS, char *origin, char *destination);
+int Get_Deduplication_Status(FS_Control_Structure *FSCS);
+int Set_Cache_Flag(FS_Control_Structure *FSCS, int flag);
+int Exit_FS(FS_Control_Structure *FSCS);
+int Initialize_FSCS(FS_Control_Structure *FSCS, int cache_flag, char *drive, char *cache);
+int Initialize_FS_In_Drive(char *hdd);
+long unsigned Read_File_Sequentially(FS_Control_Structure *FSCS, char *filename);
+long unsigned Read_File_Block(FS_Control_Structure *FSCS, int block_number);
+
+
+
+char *List_Disk_Contents(FS_Control_Structure *FSCS);
+/*
+Utiliza la funcion List_All_Files();
+Devuelve un string de todos los archivos en el FS y su tamanio con el formato:
+nombre_de_archivo_1:tamanio_del_archivo_1/nombre_de_archivo_2:tamanio_del_archivo_2...
+Cada archivo se separa del siguiente con una '/'
+Los tamanios son separados de los nombres de los archivos por ':'
+El tamanio esta dado en el numero de bloques totales que ocupa dicho archivo
+*/
+
+char *Report_Disk_Status(FS_Control_Structure *FSCS);
+/*
+Manda llamar la funcion List_Disk_Contents()
+Al resultado de esta, agrega al final del string
+  El numero de bloques libres
+  El numero de inodes libres (archivos que pueden crearse)
+Separa estos valores con el caracter '+'
+nombre_de_archivo_1:tamanio_del_archivo_1/...nombre_de_archivo_n:tamanio_del_archivo_n+bloques_libres+inodes_libres
+*/
+
+char *Report_Cache_Status(FS_Control_Structure *FSCS);
+/*
+Devuelve un string con el formato
+bloques_libres_en_cache+cache_hits_totales
+Devuelve "" si cache_flag = 0 (cache desactivado)
+*/
+
+int Delete_File(FS_Control_Structure *FSCS, char *filename);
+/*
+Busca el inode del archivo llamado filename con la funcion File_Exists
+Obtiene el inode del archivo con la funcion Get_Inode
+Borra todos los bloques asignados al archivo con las Funciones
+  Delete_Data_Block
+  Delete_Indirect_Block
+  Delete_Double_Indirect_Block
+Se actualiza el inode Bit Map (con valor 0)
+Se borra la entrada de directorio con la funcion Delete_Directory_Entry_Number
+Se aumenta en uno el numero de inodes libres
+Si ahora solo hay una libre, se actualiza el valor del siguiente inode y entrada de directorio libres
+Los bloques en la estructura de inode no se modifican
+Regresa:
+-2 si no encontro el archivo
+el numero del inode del archivo borrado
+*/
+
+int Enter_File(FS_Control_Structure *FSCS, char *origin, char *destination);
+/*
+Copia el archivo origin al archivo destination en el FS
+Verifica disponibilidad de inodes
+Checa el tamanio del archivo y verifica disponibilidad de bloques, tomando en cuenta bloques apuntadores
+Asigna un nuevo inode y entrada de directorio Create_New_File_With_Name()
+Se lee y actualiza el inode
+Se recorren los apuntadores y se van asignando los bloques
+Assign_Block_To_Existing_Or_New_Data_Block() para bloques de datos leidos del archivo origin
+Allocate_New_Data_Block() y Initialize_Data_Pointer_Block() para bloques apuntadores
+Actualiza el inode en el IBS
+*/
+
+int Extract_File(FS_Control_Structure *FSCS, char *origin, char *destination);
+/*
+Extrae el archivo origin y lo guarda en el archivo destination
+*/
+
+int Get_Deduplication_Status(FS_Control_Structure *FSCS);
+/*
+Devuelve el numero de bloques "virtuales" alocados, que son bloques que han
+surgido por deduplicacion pero no consumen verdadero espacio en disco.
+Estos bloques deben ser considerados para reportar correctamente la utilizacion de disco
+Regresa count total de bloques en la estructura de control menos bloques alocados, es decir,
+cuanto bloques estan duplicados
+*/
+
+int Set_Cache_Flag(FS_Control_Structure *FSCS, int flag);
+/*
+Habilita el uso del cache
+flag = 1 -> habilitado
+flag = 0 -> deshabilitado
+Cuando se habilita, se manda llamar a Initialize_Cache()
+Cuando se deshabilita, se cierra el fd del cache
+*/
+
+int Exit_FS(FS_Control_Structure *FSCS);
+/*
+Manda llamar a Save_Changes()
+Hace un close de los apuntadores a HDD y SSD
+*/
+
+int Initialize_FSCS(FS_Control_Structure *FSCS, int cache_flag, char *drive, char *cache);
+/*
+Inicializa la estructura FSCS y todos sus valores
+Lee el contenido del primer bloque del disco y copia los valores a la estructura FSCS
+Inicializa los fd
+Inicializa los next free block, inode y directory entry
+*/
+
+int Initialize_FS_In_Drive(char *hdd);
+/*
+Inicializa el FS en un disco y escribe los valores para que inicie vacio sin archivos
+*/
+
+long unsigned Read_File_Sequentially(FS_Control_Structure *FSCS, char *filename);
+/*
+Encuentra el archivo filename y simula su lectura secuencial, accediendo a todos sus bloques.
+Devuelve el tiempo transcurrido en la simulacion
+Esta basado en la funcion Extract_File() pero sin las escrituras a disco al archivo destino
+*/
+
+long unsigned Read_File_Block(FS_Control_Structure *FSCS, int block_number);
+/*
+Encuentra el bloque block_number y lo lee, devolviendo el tiempo que tardó en leerlo
+Podria cambiarse para recibir un arreglo de bloques y leer todos los bloques del arreglo
+*/
