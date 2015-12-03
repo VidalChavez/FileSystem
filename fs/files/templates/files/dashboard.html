@@ -34,14 +34,17 @@
 									<td>ejemplo.txt</td>
 									<td>666</td>
 									<td>
-										<button type="button" class="btn btn-primary btn-sm" >
-											<i class="pe-7s-back-2"></i></td>
-										</button>
-
+										<a href="{% url 'files:extraer_path' 'VARIABLE' %}">
+											<button type="button" class="btn btn-primary btn-sm" >
+												<i class="pe-7s-back-2"></i></td>
+											</button>
+										</a>
 										<td>
+											<a href="{% url 'files:elimina_archivo' 'elimna_VARIALBE' %}">
 											<button type="button" class="btn btn-danger btn-sm" >
 												<i class="pe-7s-close"></i>
 											</button>
+											</a>
 
 										</td>
 									</tr>
@@ -50,15 +53,18 @@
 										<td>Minerva Hooper</td>
 										<td>23,789</td>
 										<td>
-											<button type="button" class="btn btn-primary btn-sm" >
-												<i class="pe-7s-back-2"></i></td>
-											</button>
+											<a href="{% url 'files:extraer_path' 'VARIABLE' %}">
+												<button type="button" class="btn btn-primary btn-sm" >
+													<i class="pe-7s-back-2"></i></td>
+												</button>
+											</a>
 
 											<td>
+												<a href="{% url 'files:elimina_archivo' 'elimna_VARIALBE' %}">
 												<button type="button" class="btn btn-danger btn-sm" >
 													<i class="pe-7s-close"></i>
 												</button>
-
+												</a>
 											</td>
 
 										</tr>

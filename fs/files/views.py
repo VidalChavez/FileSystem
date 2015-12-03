@@ -8,8 +8,13 @@ def archivos(request):
 def agrega_archivo(request):
     return HttpResponse("En agrega archivos")
 
-def elimina_archivo(request):
-    return HttpResponse("En elimina Archivo")
+def elimina_archivo(request, nombre_archivo):
+    msg = "Elimina Archivo " + nombre_archivo
+    return HttpResponse(msg)
+
+def extraer_path(request, nombre_archivo):
+    msg = "Extraer Path de" + nombre_archivo
+    return render(request, 'files/input_path.html', {})
 
 def extraer_archivo(request):
     return HttpResponse("Extraer archivo")
