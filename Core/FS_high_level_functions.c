@@ -90,36 +90,37 @@ int Assign_Block_To_Existing_Or_New_Data_Block(FS_Control_Structure *FSCS, char 
   unsigned short block_count = 0;
   char existing_block[BLOCK_SIZE];
 
-  while (allocated_blocks) {
-    //printf("Allocated blocks to check: %d\n",allocated_blocks);
-    //printf("block_number: %d\n",block_number);
-    //We find the next allocated block
-    offset = Get_Offset_For_DB_In_CS(0); //start at zero
-    Set_Fd_At_Offset(offset, FSCS, 1);
-    block_number--; //necessary because of read()
-    do {
-      block_number++; //necessary because of read()
-      read(FSCS->HDD_storage_fd,&block_count,sizeof(unsigned short));
-      //printf("block_count: %d\n",block_count);
-    } while(block_count == 0);
-    //Allocated blocks have block_count > 0
-    //printf("Reading block: %d\n",block_number);
-    offset = Get_Offset_For_Data_Block(block_number);
-    Set_Fd_At_Offset(offset, FSCS, 1);
-    read(FSCS->HDD_storage_fd,existing_block,BLOCK_SIZE);
-    //Comparing allocated with new block
-    if (Blocks_Are_Equal(new_block, existing_block)) {
-      //printf("Blocks were the same\n");
-      //Update Block Count
-      //Duplicate was found
-      Update_Data_Block_Count(FSCS,block_number,'+');
-      if (FSCS->cache_flag) Update_Cache_Values(FSCS, block_number);
-      return block_number;
+  if (FSCS->deduplication_flag) {
+    while (allocated_blocks) {
+      //printf("Allocated blocks to check: %d\n",allocated_blocks);
+      //printf("block_number: %d\n",block_number);
+      //We find the next allocated block
+      offset = Get_Offset_For_DB_In_CS(0); //start at zero
+      Set_Fd_At_Offset(offset, FSCS, 1);
+      block_number--; //necessary because of read()
+      do {
+        block_number++; //necessary because of read()
+        read(FSCS->HDD_storage_fd,&block_count,sizeof(unsigned short));
+        //printf("block_count: %d\n",block_count);
+      } while(block_count == 0);
+      //Allocated blocks have block_count > 0
+      //printf("Reading block: %d\n",block_number);
+      offset = Get_Offset_For_Data_Block(block_number);
+      Set_Fd_At_Offset(offset, FSCS, 1);
+      read(FSCS->HDD_storage_fd,existing_block,BLOCK_SIZE);
+      //Comparing allocated with new block
+      if (Blocks_Are_Equal(new_block, existing_block)) {
+        //printf("Blocks were the same\n");
+        //Update Block Count
+        //Duplicate was found
+        Update_Data_Block_Count(FSCS,block_number,'+');
+        if (FSCS->cache_flag) Update_Cache_Values(FSCS, block_number);
+        return block_number;
+      }
+      block_number++;
+      allocated_blocks--;
     }
-    block_number++;
-    allocated_blocks--;
   }
-
   //No match was found; New Block is Allocated
   //printf("No blocks were found to match\n");
   block_number = Allocate_New_Data_Block(FSCS);
@@ -513,4 +514,20 @@ int Initialize_Cache(FS_Control_Structure *FSCS) {
     FSCS->CMS.total_cache_hits = 0;
     FSCS->CMS.reference_check = 0;
     return 0;
-  }
+}
+
+int Read_FSCS_From_File(FS_Control_Structure *FSCS) {
+  int fd;
+  fd = open(FSCS_FILE, O_RDWR);
+  read(fd,FSCS,sizeof(FS_Control_Structure));
+  close(fd);
+  return 0;
+}
+
+int Write_FSCS_To_File(FS_Control_Structure *FSCS) {
+  int fd;
+  fd = open(FSCS_FILE, O_RDWR);
+  write(fd,FSCS,sizeof(FS_Control_Structure));
+  close(fd);
+  return 0;
+}

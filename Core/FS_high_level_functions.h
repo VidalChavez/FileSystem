@@ -3,7 +3,6 @@
 int Mount_HDD(FS_Control_Structure *FSCS);
 int Mount_SSD(FS_Control_Structure *FSCS);
 int Save_Changes(FS_Control_Structure *FSCS);
-int Exit_FS(FS_Control_Structure *FSCS);
 int Set_Fd_At_Offset(long int offset, FS_Control_Structure *FSCS, int drive);
 int Allocate_New_Data_Block(FS_Control_Structure *FSCS);
 int Assign_Block_To_Existing_Or_New_Data_Block(FS_Control_Structure *FSCS, char new_block[BLOCK_SIZE]);
@@ -27,3 +26,5 @@ int Initialize_Data_Pointer_Block(FS_Control_Structure *FSCS, int block_number);
 int Read_Block(FS_Control_Structure *FSCS, int block_number, char block[BLOCK_SIZE]);
 int Update_Cache_Values(FS_Control_Structure *FSCS, int block_number);
 int Initialize_Cache(FS_Control_Structure *FSCS);
+int Read_FSCS_From_File(FS_Control_Structure *FSCS);
+int Write_FSCS_To_File(FS_Control_Structure *FSCS);

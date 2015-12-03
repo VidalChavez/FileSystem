@@ -47,6 +47,7 @@ typedef struct FS_Control_Structure {
   int next_Free_Inode_Number; //number of inode
   int unallocated_Inodes_Left;
   int unallocated_Data_Blocks_Left;
+  char deduplication_flag;
   char cache_flag; //indicates if cache is activated
   Cache_Management_Structure CMS;
 } FS_Control_Structure;
