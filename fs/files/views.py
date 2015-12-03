@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 
 
@@ -10,11 +10,15 @@ def agrega_archivo(request):
 
 def elimina_archivo(request, nombre_archivo):
     msg = "Elimina Archivo " + nombre_archivo
-    return HttpResponse(msg)
+    print msg
+    print "xxxxxxxxxxxxxxx"
+    return redirect('/')
 
 def extraer_path(request, nombre_archivo):
     msg = "Extraer Path de" + nombre_archivo
-    return render(request, 'files/input_path.html', {})
+    print msg
+    print "*******************"
+    return redirect('/')
 
 def extraer_archivo(request):
     return HttpResponse("Extraer archivo")
