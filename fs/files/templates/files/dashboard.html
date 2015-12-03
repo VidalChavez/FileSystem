@@ -8,12 +8,16 @@
 			<div class="card">
 				<div class="content">
 					<a href="{% url 'files:agrega_archivo_path' %}">
-						<button class="btn btn-info btn-fill">Agregar archivo</button>
+						<button class="btn btn-info btn-fill pull-right">Agregar archivo</button>
 					</a>
 
 
-					<button type="button" class="btn btn-success btn-fill pull-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="cache">
+					<button type="button" class="btn btn-success btn-fill" data-toggle="button" aria-pressed="false" autocomplete="off" id="cache">
 						Cache ON
+					</button>
+
+					<button type="button" class="btn btn-warning btn-fill" data-toggle="button" aria-pressed="false" autocomplete="off" id="dataD">
+						DD ON
 					</button>
 
 					<div class="clearfix"></div>
@@ -120,4 +124,31 @@
 
 							});
 							</script>
+							<script>
+							$("#dataD").on('click', function(){
+								var estado = 1;
+								var request = $.ajax({
+									url: "/files/set_dd",
+									method: "GET",
+									data: { "cache" : estado }
+								});
+
+								request.done(function( msg ) {
+									if ($("#dataD").text() === 'DD OFF') {
+										$("#dataD").text("DD ON");
+									}
+									else {
+										$("#dataD").text("DD OFF");
+									}
+									estado = 0;
+									console.log(msg);
+								});
+
+								request.fail(function( jqXHR, textStatus ) {
+									alert( "Hubo un error: " + textStatus + " :" + estado);
+								});
+
+							});
+							</script>
+
 							{% endblock %}

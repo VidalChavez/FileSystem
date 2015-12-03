@@ -44,5 +44,14 @@ def set_cache(request):
     else:
         return Http404("Error")
 
+@csrf_exempt
+def set_dd(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            #
+            return JsonResponse({'status': 'ok'})
+    else:
+        return Http404("Error")
+
 def graficas(request):
     return render(request, 'files/graphs.html', {'graficas':True})

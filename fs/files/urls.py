@@ -9,5 +9,6 @@ urlpatterns = [
     url(r'^elimina/(?P<nombre_archivo>[a-zA-Z0-9_ ]+)/$', views.elimina_archivo, name='elimina_archivo'),
     url(r'^extraer_path/(?P<nombre_archivo>[a-zA-Z0-9_ ]+)/$', views.extraer_path, name='extraer_path'),
     url(r'^set_cache/', views.set_cache, name='set_cache'),
+    url(r'^set_dd/', views.set_dd, name='set_dd'),
     url(r'^graficas/', views.graficas, name='graficas'),
 ]
