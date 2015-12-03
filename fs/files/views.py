@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 def archivos(request):
-    return render(request, "files/dashboard.html", {})
+    return render(request, "files/dashboard.html", {'archivos':True})
 
 def agrega_archivo_path(request):
     if request.method == 'POST':
@@ -39,7 +39,10 @@ def extraer_archivo(request):
 def set_cache(request):
     if request.is_ajax():
         if request.method == 'GET':
-            # 
+            #
             return JsonResponse({'status': 'ok'})
     else:
         return Http404("Error")
+
+def graficas(request):
+    return render(request, 'files/graphs.html', {'graficas':True})

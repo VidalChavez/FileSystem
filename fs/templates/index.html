@@ -52,14 +52,22 @@
       </div>
 
       <ul class="nav">
+        {% if archivos %}
         <li class="active">
+        {% else %}
+        <li class="">
+        {% endif %}
           <a href="/">
             <i class="pe-7s-news-paper"></i>
             <p>Archivos</p>
           </a>
         </li>
-        <li>
-          <a href="user.html">
+        {% if graficas %}
+        <li class="active">
+        {% else %}
+        <li class="">
+        {% endif %}
+          <a href="/files/graficas">
             <i class="pe-7s-graph"></i>
             <p>Estadísticas</p>
           </a>
@@ -139,12 +147,8 @@
 <!--  Google Maps Plugin    -->
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 
-<!-- Light Bootstrap Table Core javascript and methods for Demo purpose -->
-<script src="{% static 'assets/js/light-bootstrap-dashboard.js' %}"></script>
-
-<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
-<script src="{% static 'assets/js/demo.js' %}"></script>
 
 
-{% block page_js%}{% endblock %}
+
+{% block page_js %}{% endblock %}
 </html>
