@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 
 def archivos(request):
@@ -34,5 +35,11 @@ def extraer_path(request, nombre_archivo):
 def extraer_archivo(request):
     return HttpResponse("Extraer archivo")
 
+@csrf_exempt
 def set_cache(request):
-    return HttpResponse("En cache")
+    if request.is_ajax():
+        if request.method == 'GET':
+            # 
+            return JsonResponse({'status': 'ok'})
+    else:
+        return Http404("Error")

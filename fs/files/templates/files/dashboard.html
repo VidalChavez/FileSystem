@@ -98,19 +98,20 @@
 
 
 								var request = $.ajax({
-									url: "script.php",
-									method: "POST",
-									data: { cache : estado }
+									url: "/files/set_cache",
+									method: "GET",
+									data: { "cache" : estado }
 								});
 
 								request.done(function( msg ) {
-									if ($(this).text() === 'Cache OFF') {
-										$(this).text("Cache ON");
+									if ($("#cache").text() === 'Cache OFF') {
+										$("#cache").text("Cache ON");
 									}
 									else {
-										$(this).text("Cache OFF");
+										$("#cache").text("Cache OFF");
 									}
 									estado = 0;
+									console.log(msg);
 								});
 
 								request.fail(function( jqXHR, textStatus ) {

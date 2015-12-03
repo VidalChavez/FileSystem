@@ -8,4 +8,5 @@ urlpatterns = [
     # url(r'^extraer/', views.extraer_archivo, name='extraer_archivo'),
     url(r'^elimina/(?P<nombre_archivo>[a-zA-Z0-9_ ]+)/$', views.elimina_archivo, name='elimina_archivo'),
     url(r'^extraer_path/(?P<nombre_archivo>[a-zA-Z0-9_ ]+)/$', views.extraer_path, name='extraer_path'),
+    url(r'^set_cache/', views.set_cache, name='set_cache'),
 ]
