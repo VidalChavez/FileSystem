@@ -1,0 +1,53 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+{% block main_content %}
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="card">
+
+		</div>
+		<div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-12">
+				<br>
+				<div class="card">
+					<div class="header">
+						<h4 class="title">Listado de Archivos</h4>
+
+					</div>
+					<div class="content table-responsive table-full-width">
+						<table class="table table-hover table-striped">
+							<thead>
+								<th>Num</th>
+								<th>Nombre</th>
+								<th>Tamaño en Bloques</th>
+								<th>Extraer</th>
+								<th>Eliminar</th>
+
+							</thead>
+							<tbody>
+								<tr>
+									<td>1</td>
+									<td>ejemplo.txt</td>
+									<td>666</td>
+									<td>y</td>
+									<td><i class="pe-7s-close"></i></td>
+								</tr>
+								<tr>
+									<td>2</td>
+									<td>Minerva Hooper</td>
+									<td>23,789</td>
+									<td>y</td>
+									<td>
+											<i class="pe-7s-close"></i>
+									</td>
+
+								</tr>
+							</tbody>
+						</table>
+
+					</div>
+					{% endblock %}
