@@ -12,19 +12,9 @@
 					</a>
 
 
-
-					<div class="btn-group pull-right" data-toggle="buttons">
-
-						<label class="btn btn-success btn-fill active">
-							CACHE
-							<input type="radio" name="options" id="option1" autocomplete="off" checked> ON
-						</label>
-						<label class="btn btn-success btn-fill">
-							CACHE
-							<input type="radio" name="options" id="option2" autocomplete="off"> OFF
-						</label>
-
-					</div>
+					<button type="button" class="btn btn-success btn-fill pull-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="cache">
+						Cache ON
+					</button>
 
 					<div class="clearfix"></div>
 
@@ -99,4 +89,34 @@
 
 
 
+							{% endblock %}
+
+							{% block page_js%}
+							<script>
+							$("#cache").on('click', function(){
+								var estado = 1;
+
+
+								var request = $.ajax({
+									url: "script.php",
+									method: "POST",
+									data: { cache : estado }
+								});
+
+								request.done(function( msg ) {
+									if ($(this).text() === 'Cache OFF') {
+										$(this).text("Cache ON");
+									}
+									else {
+										$(this).text("Cache OFF");
+									}
+									estado = 0;
+								});
+
+								request.fail(function( jqXHR, textStatus ) {
+									alert( "Hubo un error: " + textStatus + " :" + estado);
+								});
+
+							});
+							</script>
 							{% endblock %}
