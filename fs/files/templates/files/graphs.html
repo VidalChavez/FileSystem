@@ -6,7 +6,7 @@
 
 
 <div class="row">
-  <div class="col-md-5">
+  <div class="col-md-10">
     <div class="card">
       <div class="header">
         <h4 class="title">Bloques</h4>
@@ -28,12 +28,12 @@
     </div>
     <div class="card">
       <div class="header">
-        <h4 class="title">Bloques</h4>
+        <h4 class="title">Cache</h4>
         <p class="category">---</p>
       </div>
       <div class="content" style="text-align:center;">
         <div id="canvas-holder">
-          <canvas id="chart-area2" width="" height="300"/>
+          <canvas id="chart-area2" width="" height="100"/>
         </div>
       </div>
       <div class="footer">
@@ -88,11 +88,42 @@ var pieData = [
     label: "Dark Grey"
   }
 ];
+
+
+///////
+
+var randomScalingFactor = function(){ return Math.round(Math.random()*100)};
+		var lineChartData = {
+			labels : ["0","1","2","3","4","5","6"],
+			datasets : [
+				{
+					label: "My First dataset",
+					fillColor : "rgba(220,220,220,0.2)",
+					strokeColor : "rgba(220,220,220,1)",
+					pointColor : "rgba(220,220,220,1)",
+					pointStrokeColor : "#fff",
+					pointHighlightFill : "#fff",
+					pointHighlightStroke : "rgba(220,220,220,1)",
+					data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
+				},
+				{
+					label: "My Second dataset",
+					fillColor : "rgba(151,187,205,0.2)",
+					strokeColor : "rgba(151,187,205,1)",
+					pointColor : "rgba(151,187,205,1)",
+					pointStrokeColor : "#fff",
+					pointHighlightFill : "#fff",
+					pointHighlightStroke : "rgba(151,187,205,1)",
+					data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
+				}
+			]
+		}
+//////
 window.onload = function(){
   var ctx = document.getElementById("chart-area").getContext("2d");
   var ctx2 = document.getElementById("chart-area2").getContext("2d");
   window.myPie = new Chart(ctx).Pie(pieData);
-  window.myPie2 = new Chart(ctx2).Pie(pieData);
+  window.myPie2 = new Chart(ctx2).Line(lineChartData, {responsive: true});
 };
 
 </script>
